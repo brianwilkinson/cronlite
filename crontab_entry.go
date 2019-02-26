@@ -83,7 +83,7 @@ func parseCrontabEntryLine(crontab_entry_line string) (*CrontabEntry) {
 			crontab_entry.dayOfWeek = crontab_entry_part
 			state = command
 		case command:
-			crontab_entry.command = strings.Join(crontab_entry_parts[index:], " ")
+			crontab_entry.command = strings.TrimSpace(strings.Join(crontab_entry_parts[index:], " "))
 			state = end
 			break
 		}
