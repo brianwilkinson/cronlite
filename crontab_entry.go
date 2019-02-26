@@ -394,24 +394,20 @@ func (crontabEntry *CrontabEntry) runCommand() {
 	args := []string{"-c", crontabEntry.command}
 	cmd = exec.Command("bash", args...)
 
-	logfile, err := os.OpenFile("/tmp/cron.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	} else {
-		cmd.Stdout = logfile
-		cmd.Stderr = logfile
-		defer logfile.Close()
-	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	runerr := cmd.Start()
 	if runerr != nil {
 		log.Printf("Failed to run: %s", crontabEntry.command)
 	}
+
+	log.Printf("CMD [%s]", crontabEntry.command)
 	exitVal := cmd.Wait()
 	if exitVal != nil {
 		log.Printf("Error running [%s] %v", crontabEntry.command, exitVal)
 	} else {
-		log.Printf("OK: [%s]", crontabEntry.command)
+		// log.Printf("OK: [%s]", crontabEntry.command)
 	}
 
 }
