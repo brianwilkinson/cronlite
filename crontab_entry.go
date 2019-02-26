@@ -356,35 +356,29 @@ func runCrontabEntry(crontab_entry *CrontabEntry) {
 			if crontab_entry.isCurrentDayOfWeek(time.Now()) {
 				state = month
 			} else {
-				log.Print("Day of week not matched")
 				state = end
 			}
 		case month:
 			if crontab_entry.isCurrentMonth(time.Now()) {
 				state = dayofmonth
 			} else {
-				log.Print("Month not matched")
 				state = end
 			}
 		case dayofmonth:
 			if crontab_entry.isCurrentDayOfMonth(time.Now()) {
 				state = hour
 			} else {
-				log.Print("Day of month not matched")
 				state = end
 			}
 		case hour:
 			if crontab_entry.isCurrentHour(time.Now()) {
 				state = minute
 			} else {
-				log.Print("Hour not matched")
 				state = end
 			}
 		case minute:
 			if crontab_entry.isCurrentMinute(time.Now()) {
 				crontab_entry.runCommand()
-			} else {
-				log.Print("Minute not matched")
 			}
 			state = end
 		}
