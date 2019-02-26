@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"log"
+	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -43,17 +45,16 @@ func CrontabEntryFactory() (entry *CrontabEntry) {
 
 func processCrontabEntry(crontab_entry_line string) () {
 	crontab_entry := parseCrontabEntryLine(crontab_entry_line)
-	log.Printf("TEST %v", crontab_entry)
 	if crontab_entry.nonStandard != "" {
-		runNonStandardCrontabEntry(crontab_entry)
+		go runNonStandardCrontabEntry(crontab_entry)
 	} else {
-		runCrontabEntry(crontab_entry)
+		go runCrontabEntry(crontab_entry)
 	}
 }
 
 func parseCrontabEntryLine(crontab_entry_line string) (*CrontabEntry) {
-	log.Printf("Entry: %s\n", crontab_entry_line)
 	crontab_entry := CrontabEntryFactory()
+
 	state := minute_or_non_standard
 	crontab_entry_parts := strings.Split(crontab_entry_line, " ")
 	for index, crontab_entry_part := range crontab_entry_parts {
@@ -378,13 +379,41 @@ func runCrontabEntry(crontab_entry *CrontabEntry) {
 			}
 		case minute:
 			if crontab_entry.isCurrentMinute(time.Now()) {
-				log.Print("Command would run")
+				crontab_entry.runCommand()
 			} else {
 				log.Print("Minute not matched")
 			}
 			state = end
 		}
 	}
+}
+
+func (crontabEntry *CrontabEntry) runCommand() {
+	var cmd *exec.Cmd
+
+	args := []string{"-c", crontabEntry.command}
+	cmd = exec.Command("bash", args...)
+
+	logfile, err := os.OpenFile("/tmp/cron.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	} else {
+		cmd.Stdout = logfile
+		cmd.Stderr = logfile
+		defer logfile.Close()
+	}
+
+	runerr := cmd.Start()
+	if runerr != nil {
+		log.Printf("Failed to run: %s", crontabEntry.command)
+	}
+	exitVal := cmd.Wait()
+	if exitVal != nil {
+		log.Printf("Error running [%s] %v", crontabEntry.command, exitVal)
+	} else {
+		log.Printf("OK: [%s]", crontabEntry.command)
+	}
+
 }
 
 func runNonStandardCrontabEntry(crontab_entry *CrontabEntry) {
