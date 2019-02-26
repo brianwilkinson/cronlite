@@ -58,6 +58,9 @@ func parseCrontabEntryLine(crontab_entry_line string) (*CrontabEntry) {
 	state := minute_or_non_standard
 	crontab_entry_parts := strings.Split(crontab_entry_line, " ")
 	for index, crontab_entry_part := range crontab_entry_parts {
+		if (crontab_entry_part == "" || crontab_entry_part == " ") && state != command {
+			continue
+		}
 		switch state {
 		case minute_or_non_standard:
 			if strings.Index(crontab_entry_part, "@") == 0 {
