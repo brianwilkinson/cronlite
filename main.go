@@ -64,27 +64,16 @@ func processCrontabFile(crontab string) {
 	}
 }
 
-func logToStdout() {
-	loggingFilename := "/dev/stdout"
-	f, err := os.OpenFile(loggingFilename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
-	log.SetOutput(f)
-}
-
 func main() {
-	//logToStdout()
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
 	for {
+		secondsNow := time.Now().Second()
+		secondsWait := 60 - secondsNow
+		timer := time.NewTimer(time.Duration(secondsWait) * time.Second)
+
 		select {
-		case t := <-ticker.C:
-			if t.Second() == 0 {
-				for _, crontab := range getCrontabs() {
-					go processCrontabFile(crontab)
-				}
+		case <-timer.C:
+			for _, crontab := range getCrontabs() {
+				go processCrontabFile(crontab)
 			}
 		}
 	}
