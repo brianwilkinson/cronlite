@@ -21,7 +21,7 @@ func getCrontabs() ([]string) {
 			files, err := filepath.Glob(glob)
 			if err == nil {
 				for _, file := range files {
-					log.Printf("CRONTAB: %v", file)
+					// log.Printf("CRONTAB: %v", file)
 					crontabs = append(crontabs, file)
 				}
 			}
