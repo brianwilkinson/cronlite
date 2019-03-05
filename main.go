@@ -16,11 +16,14 @@ func getCrontabs() ([]string) {
 	override_crontabs := os.Getenv("CRONTABS")
 	if override_crontabs == "" {
 		crontabs = append(crontabs, "/etc/crontab")
-		files, err := filepath.Glob("/var/spool/cron/crontabs/*")
-		if err == nil {
-			for _, file := range files {
-				log.Printf("CRONTAB: %v", file)
-				crontabs = append(crontabs, file)
+		globs := []string{"/var/spool/cron/crontabs/*", "/etc/cron.d/*"}
+		for _, glob := range globs {
+			files, err := filepath.Glob(glob)
+			if err == nil {
+				for _, file := range files {
+					log.Printf("CRONTAB: %v", file)
+					crontabs = append(crontabs, file)
+				}
 			}
 		}
 	} else {
